@@ -1,21 +1,36 @@
-#!/usr/bin/python3
+import threading, socket, sys, time
+from queue import Queue
 
-import socket
+print_lock = threading.Lock()
 
-# later voeg ik hier multithreading aan toe
-# import threading
+if len(sys.argv) !=2 :
+    print ("Usage: portscan.py <host>")
+    sys.exit(1)
 
-s= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.settimeout(5)
+host = sys.argv[1]
 
-host = input("Please enter the IP you want to scan: ")
-port = int(input("Please enter the port you wan to scan: "))
+def scan(port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        con = s.connect((host, port))
+        with print_lock:
+            print('Port: ' + str(port) + ' is open')
+        con.close()
+    except:
+        pass
 
-def portScanner(port):
-    if s.connect_ex((host, port)):
-        print("The port is closed")
-    else:
-        print("The port is open")
+def threader():
+    while True:
+        worker = q.get()
+        scan(worker)
+        q.task_done()
 
+q = Queue()
 
-portScanner(port)
+for x in range(100):
+    t = threading.Thread(target=threader)
+    t.daemon = True
+    t.start()
+
+for worker in range(1, 1024):
+    q.put(worker)
