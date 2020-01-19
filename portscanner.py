@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import threading, socket, sys, time
 from queue import Queue
 
